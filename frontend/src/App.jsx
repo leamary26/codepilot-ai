@@ -31,6 +31,7 @@ const editorLanguages = {
 }
 
 function getScoreColor(score) {
+
   if (score === null || score === undefined) {
     return '#94a3b8'
   }
@@ -42,6 +43,7 @@ function getScoreColor(score) {
 }
 
 function formatDate(date) {
+
   return new Date(date).toLocaleString('en-IN', {
     day: 'numeric',
     month: 'short',
@@ -83,6 +85,7 @@ function AuthScreen({ onLogin, notice }) {
         : { email, password }
 
       const response = await fetch(endpoint, {
+
         method: 'POST',
 
         headers: {
@@ -127,6 +130,7 @@ function AuthScreen({ onLogin, notice }) {
   }
 
   function switchMode() {
+
     setRegister(previous => !previous)
     setError('')
     setPassword('')
@@ -168,9 +172,11 @@ function AuthScreen({ onLogin, notice }) {
         </div>
 
         {notice && (
+
           <div className="auth-notice" role="status">
             {notice}
           </div>
+
         )}
 
         <form
@@ -270,9 +276,11 @@ function AuthScreen({ onLogin, notice }) {
           </label>
 
           {register && (
+
             <p className="password-hint">
               Use at least 8 characters.
             </p>
+
           )}
 
           {error && (
@@ -351,7 +359,10 @@ function Dashboard({ session, onLogout }) {
   // Review history states
 
   const [history, setHistory] = useState([])
-  const [historyLoading, setHistoryLoading] = useState(false)
+
+  // Start with loading enabled for the initial request
+  const [historyLoading, setHistoryLoading] = useState(true)
+
   const [historyError, setHistoryError] = useState('')
   const [selectedReviewId, setSelectedReviewId] = useState(null)
   const [savedScore, setSavedScore] = useState(null)
@@ -374,7 +385,13 @@ function Dashboard({ session, onLogout }) {
 
     if (response.status === 401) {
 
-      onLogout('Your session has expired. Please sign in again.')
+      // Ignore authentication errors from cancelled requests
+      if (!options.signal?.aborted) {
+
+        onLogout(
+          'Your session has expired. Please sign in again.'
+        )
+      }
 
       throw new Error('Your session has expired.')
     }
@@ -404,6 +421,7 @@ function Dashboard({ session, onLogout }) {
   const scoreColor = getScoreColor(score)
 
   // Fetch personal review history
+  // Used for manual refresh and after generating a review
 
   const fetchHistory = useCallback(async () => {
 
@@ -433,9 +451,67 @@ function Dashboard({ session, onLogout }) {
 
   }, [apiFetch])
 
+  // ================================
+  // INITIAL HISTORY LOADING
+  // Fixed React ESLint error
+  // ================================
+
   useEffect(() => {
-    fetchHistory()
-  }, [fetchHistory])
+
+    const controller = new AbortController()
+
+    async function loadInitialHistory() {
+
+      try {
+
+        const response = await apiFetch(
+          '/api/history',
+          {
+            signal: controller.signal
+          }
+        )
+
+        if (!response.ok) {
+
+          throw new Error(
+            'Unable to load review history.'
+          )
+        }
+
+        const data = await response.json()
+
+        if (!controller.signal.aborted) {
+
+          setHistory(data)
+          setHistoryError('')
+        }
+
+      } catch (err) {
+
+        if (!controller.signal.aborted) {
+
+          setHistoryError(err.message)
+        }
+
+      } finally {
+
+        if (!controller.signal.aborted) {
+
+          setHistoryLoading(false)
+        }
+      }
+    }
+
+    loadInitialHistory()
+
+    // Cancel the request when the dashboard closes
+
+    return () => {
+
+      controller.abort()
+    }
+
+  }, [apiFetch])
 
   // Generate AI review
 
@@ -541,6 +617,7 @@ function Dashboard({ session, onLogout }) {
       )
 
       if (!response.ok) {
+
         throw new Error('Unable to delete the review.')
       }
 
@@ -549,6 +626,7 @@ function Dashboard({ session, onLogout }) {
       )
 
       if (selectedReviewId === id) {
+
         clearCode()
       }
 
@@ -1095,7 +1173,11 @@ function Dashboard({ session, onLogout }) {
             <button
               className="review-button"
               onClick={handleReview}
-              disabled={loading}
+              disabled={
+                loading ||
+                historyLoading ||
+                deletingId !== null
+              }
             >
 
               <Sparkles size={19} />
@@ -1265,7 +1347,9 @@ function Dashboard({ session, onLogout }) {
                       img: () => null
                     }}
                   >
+
                     {review}
+
                   </ReactMarkdown>
 
                 </div>
@@ -1357,7 +1441,6 @@ function Dashboard({ session, onLogout }) {
       </footer>
 
     </div>
-
   )
 }
 
