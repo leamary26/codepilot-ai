@@ -2,12 +2,19 @@ package com.leamary.codepilotai;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 
-@SpringBootApplication
+@SpringBootApplication(
+        exclude = UserDetailsServiceAutoConfiguration.class
+)
 public class CodepilotAiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(CodepilotAiApplication.class, args);
-    }
 
+        SpringApplication.run(
+                CodepilotAiApplication.class,
+                args
+        );
+    }
 }
+

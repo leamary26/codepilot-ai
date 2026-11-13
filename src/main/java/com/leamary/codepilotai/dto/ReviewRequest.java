@@ -6,6 +6,9 @@ public class ReviewRequest {
     private String code;
     private String language;
 
+    public ReviewRequest() {
+    }
+
     public String getCode() {
         return code;
     }
@@ -22,4 +25,3 @@ public class ReviewRequest {
         this.language = language;
     }
 }
-

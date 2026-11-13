@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +39,24 @@ public class ReviewService {
     @Value("${gemini.fallback.model}")
     private String fallbackModel;
 
+    // Maximum allowed code length
+    private static final int MAX_CODE_LENGTH = 20000;
+
+    // Supported programming languages
+    private static final Set<String> SUPPORTED_LANGUAGES =
+            Set.of(
+                    "Java",
+                    "Python",
+                    "JavaScript",
+                    "TypeScript",
+                    "C",
+                    "C++",
+                    "SQL",
+                    "HTML",
+                    "CSS",
+                    "Other"
+            );
+
     private final RestClient restClient =
             RestClient.create();
 
@@ -52,28 +71,16 @@ public class ReviewService {
         this.userRepository = userRepository;
     }
 
-    // 1. Review code for the logged-in user
+    // ================================
+    // 1. Review code for logged-in user
+    // ================================
+
     public String reviewCode(
             ReviewRequest request,
             String email) {
 
-        if (request.getCode() == null ||
-                request.getCode().isBlank()) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Please provide code to review."
-            );
-        }
-
-        if (request.getLanguage() == null ||
-                request.getLanguage().isBlank()) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Please select a programming language."
-            );
-        }
+        // Validate request before calling Gemini
+        validateRequest(request);
 
         // Find the authenticated user
         User user = userRepository
@@ -133,7 +140,69 @@ public class ReviewService {
         return reviewText;
     }
 
-    // 2. Generate review using primary model
+    // ================================
+    // 2. Validate incoming request
+    // ================================
+
+    private void validateRequest(
+            ReviewRequest request) {
+
+        // Reject missing request body
+        if (request == null) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Review request is required."
+            );
+        }
+
+        // Reject missing or empty code
+        if (request.getCode() == null ||
+                request.getCode().isBlank()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Please provide code to review."
+            );
+        }
+
+        // Reject excessively large code
+        if (request.getCode().length()
+                > MAX_CODE_LENGTH) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Code must not exceed "
+                            + MAX_CODE_LENGTH
+                            + " characters."
+            );
+        }
+
+        // Reject missing programming language
+        if (request.getLanguage() == null ||
+                request.getLanguage().isBlank()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Please select a programming language."
+            );
+        }
+
+        // Reject unsupported programming language
+        if (!SUPPORTED_LANGUAGES.contains(
+                request.getLanguage())) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Unsupported programming language."
+            );
+        }
+    }
+
+    // ================================
+    // 3. Generate review using primary model
+    // ================================
+
     private String generateReview(
             Map<String, Object> requestBody) {
 
@@ -184,7 +253,10 @@ public class ReviewService {
         }
     }
 
-    // 3. Try backup model
+    // ================================
+    // 4. Try backup model
+    // ================================
+
     private String tryFallback(
             Map<String, Object> requestBody) {
 
@@ -230,7 +302,10 @@ public class ReviewService {
         }
     }
 
-    // 4. Call Gemini API
+    // ================================
+    // 5. Call Gemini API
+    // ================================
+
     private String callGemini(
             String selectedModel,
             Map<String, Object> requestBody) {
@@ -289,7 +364,10 @@ public class ReviewService {
         );
     }
 
-    // 5. Save review with authenticated user
+    // ================================
+    // 6. Save review with user ownership
+    // ================================
+
     private void saveReview(
             ReviewRequest request,
             String reviewText,
@@ -316,7 +394,10 @@ public class ReviewService {
         );
     }
 
-    // 6. Extract quality score
+    // ================================
+    // 7. Extract quality score
+    // ================================
+
     private Integer extractQualityScore(
             String reviewText) {
 

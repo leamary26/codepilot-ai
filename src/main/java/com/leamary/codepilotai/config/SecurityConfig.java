@@ -1,7 +1,9 @@
+
 package com.leamary.codepilotai.config;
 
 import com.leamary.codepilotai.repository.UserRepository;
 import com.leamary.codepilotai.security.JwtAuthenticationFilter;
+import com.leamary.codepilotai.security.RequestSizeFilter;
 import com.leamary.codepilotai.service.JwtService;
 
 import jakarta.servlet.DispatcherType;
@@ -45,11 +47,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http) throws Exception {
 
+        // JWT authentication filter
         JwtAuthenticationFilter jwtFilter =
                 new JwtAuthenticationFilter(
                         jwtService,
                         userRepository
                 );
+
+        // NEW: HTTP request size filter
+        RequestSizeFilter requestSizeFilter =
+                new RequestSizeFilter();
 
         http
 
@@ -63,7 +70,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // NEW: Allow internal error dispatches
+                        // Allow internal error dispatches
                         .dispatcherTypeMatchers(
                                 DispatcherType.ERROR
                         ).permitAll()
@@ -93,9 +100,16 @@ public class SecurityConfig {
                         )
                 )
 
+                // Register JWT authentication filter
                 .addFilterBefore(
                         jwtFilter,
                         UsernamePasswordAuthenticationFilter.class
+                )
+
+                // NEW: Check request size before JWT filter
+                .addFilterBefore(
+                        requestSizeFilter,
+                        JwtAuthenticationFilter.class
                 );
 
         return http.build();
