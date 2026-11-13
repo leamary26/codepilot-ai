@@ -423,12 +423,38 @@ The backend packaging check was performed with automated tests skipped. Addition
 
 ## 📸 Application Screenshots
 
-Screenshots of the following application screens will be added:
 
-- Login and registration
-- AI code review dashboard
-- Code quality analysis
-- Personal review history
+## 📸 Application Screenshots
+
+### AI Code Review Dashboard
+
+The main dashboard combines a professional code editor, AI-generated analysis, code quality scoring, and personalized review history.
+
+![CodePilot AI Dashboard](screenshots/dashboard.png)
+
+### Login and Registration
+
+Secure user authentication with a modern dark-themed interface.
+
+| Login Page | Registration Page |
+|:---:|:---:|
+| <img src="screenshots/login.png" width="350" alt="Login Page"/> | <img src="screenshots/register.png" width="350" alt="Registration Page"/> |
+
+### Source Code Editor
+
+Monaco-powered editor with syntax highlighting, multiple programming languages, example code, and real-time line and character counts.
+
+![Code Editor](screenshots/editor.png)
+
+### Personal Review History
+
+Users can view and delete their own saved AI reviews, including quality scores and timestamps.
+
+<img src="screenshots/history.png" width="350" alt="Personal Review History"/>
+
+---
+
+
 
 ---
 
