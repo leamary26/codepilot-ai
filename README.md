@@ -11,6 +11,35 @@ The platform combines an intelligent AI review engine with a modern code editor,
 
 ---
 
+## Live Demo
+
+🚀 **Try CodePilot AI:** [https://codepilot-ai-blue.vercel.app/](https://codepilot-ai-blue.vercel.app/)
+
+CodePilot AI is a fully deployed AI-powered code review platform that helps developers detect bugs, identify security vulnerabilities, improve performance, and generate optimized code using Google Gemini AI.
+
+### Cloud Deployment
+
+| Component | Platform |
+|-----------|----------|
+| Frontend | Vercel |
+| Backend | Render |
+| Database | Aiven PostgreSQL |
+| AI Engine | Google Gemini |
+| Authentication | JWT + BCrypt |
+
+> **Note:** The application uses free cloud hosting. The backend may take a minute to wake up after inactivity.
+
+### Testing Status
+
+- 39 automated backend tests passed.
+- Live registration and login verified.
+- AI code review generation verified.
+- Cloud database persistence verified.
+- User-specific review history and account privacy verified.
+- Review deletion verified.
+
+---
+
 ## ✨ Key Features
 
 - 🤖 **AI-Powered Code Review** – Analyze source code using Google Gemini AI.
