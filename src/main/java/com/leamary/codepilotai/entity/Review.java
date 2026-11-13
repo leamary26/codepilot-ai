@@ -1,6 +1,11 @@
+
 package com.leamary.codepilotai.entity;
 
 import jakarta.persistence.*;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,10 +19,14 @@ public class Review {
     @Column(nullable = false)
     private String language;
 
-    @Column(columnDefinition = "LONGTEXT", nullable = false)
+    // Compatible with MySQL and PostgreSQL
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @Column(nullable = false)
     private String code;
 
-    @Column(columnDefinition = "LONGTEXT", nullable = false)
+    // Compatible with MySQL and PostgreSQL
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @Column(nullable = false)
     private String review;
 
     private Integer qualityScore;
@@ -25,7 +34,7 @@ public class Review {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    // NEW: Connect each review to its owner
+    // Connect each review to its owner
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -48,7 +57,7 @@ public class Review {
         this.createdAt = LocalDateTime.now();
     }
 
-    // NEW: Constructor with user ownership
+    // Constructor with user ownership
     public Review(
             String language,
             String code,
@@ -112,7 +121,7 @@ public class Review {
         this.createdAt = createdAt;
     }
 
-    // NEW: User getter and setter
+    // User getter and setter
     public User getUser() {
         return user;
     }
